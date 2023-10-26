@@ -1,0 +1,6 @@
+dist/
+*config*.js
+
+name.js
+setEnv.js
+migrations/
