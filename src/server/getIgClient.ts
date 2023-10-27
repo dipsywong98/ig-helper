@@ -1,5 +1,5 @@
 /* tslint:disable:no-console */
-import { IgApiClient } from 'instagram-private-api';
+import { IgApiClient, IgLoginTwoFactorRequiredError } from 'instagram-private-api';
 
 import { LRUCache } from 'lru-cache';
 
@@ -31,8 +31,33 @@ export const getIgClient = async (username: string, password: string, otp?: stri
   }
   const ig = new IgApiClient();
   logger.info('loggin in ', username);
-  ig.state.generateDevice(sha(username));
-  await ig.account.login(username, password);
+  ig.state.generateDevice(username);
+  try {
+    await ig.account.login(username, password);
+  } catch (e) {
+    if (e instanceof IgLoginTwoFactorRequiredError) {
+      logger.info('dealing with 2fa');
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        username,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        totp_two_factor_on,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        two_factor_identifier,
+      } = e.response.body.two_factor_info;
+      const verificationMethod = totp_two_factor_on ? '0' : '1'; // default to 1 for SMS
+      await ig.account.twoFactorLogin({
+        username,
+        verificationCode: otp,
+        twoFactorIdentifier: two_factor_identifier,
+        verificationMethod, // '1' = SMS (default), '0' = TOTP (google auth for example)
+        trustThisDevice: '1', // Can be omitted as '1' is used by default
+      });
+    } else {
+      console.log(e);
+      throw e;
+    }
+  }
   logger.info('successfully login');
   cache.set(key, ig);
   return ig;

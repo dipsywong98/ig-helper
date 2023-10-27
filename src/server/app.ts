@@ -2,6 +2,7 @@ import express from 'express';
 import 'express-async-errors';
 import morgan from 'morgan';
 import path from 'path';
+import { IgLoginTwoFactorRequiredError, IgResponseError } from 'instagram-private-api';
 import config from '../common/config';
 import { sleep } from '../common/utils';
 import { errorHandler, NotFoundError } from './errors';
@@ -36,8 +37,8 @@ app.get('/404', async () => {
 });
 
 app.post('/api/stories', (req, res) => {
-  const { username, password } = req.body;
-  getIgClient(username, password)
+  const { username, password, otp } = req.body;
+  getIgClient(username, password, otp)
     .then(getArchivedStories)
     .then(getQA)
     .then((qa) => {
@@ -45,8 +46,14 @@ app.post('/api/stories', (req, res) => {
       return qa;
     })
     .catch((e) => {
-      console.log(e);
-      res.status(500).json(e);
+      if (e instanceof IgResponseError) {
+        logger.error(`error in /api/stories ${e.text}`);
+        res.status(400).json({ message: `Error when connecting to ig: ${e.text}` });
+      } else {
+        logger.error(`error in /api/stories ${e}`);
+        logger.error(e);
+        res.status(500).json({ message: e.message });
+      }
     });
 });
 
