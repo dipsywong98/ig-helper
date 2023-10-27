@@ -6,10 +6,13 @@ import config from '../common/config';
 import { sleep } from '../common/utils';
 import { errorHandler, NotFoundError } from './errors';
 import logger from './logger';
-import { Sample } from './models/Sample';
+import { getIgClient } from './getIgClient';
+import { getArchivedStories } from './getArchivedStories';
+import { getQA } from './getQA';
 
 const app = express();
 
+app.use(express.json());
 app.use('/', express.static(path.join(__dirname, 'client')));
 app.use(morgan('tiny', {
   stream: {
@@ -30,10 +33,23 @@ app.get('/404', async () => {
   await sleep(10);
   throw new NotFoundError();
 });
-app.get('/api/sample', async (req, res) => {
-  const sample = await Sample.findOne({});
-  res.send(sample);
+
+app.post('/api/stories', (req, res) => {
+  const { username, password } = req.body;
+  getIgClient(username, password)
+    .then(getArchivedStories)
+    .then(getQA)
+    .then((qa) => {
+      res.json(qa);
+      return qa;
+    })
+    .catch((e) => {
+      console.log(e);
+      res.status(500).json(e);
+    });
 });
+
+// app.post('/api/stories')
 
 app.use(errorHandler);
 

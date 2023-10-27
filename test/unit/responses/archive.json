@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "timestamp": 1698278500,
+      "media_count": 1,
+      "id": "archiveDay:18027881275659019",
+      "reel_type": "archive_day_reel",
+      "latest_reel_media": 1698276143
+    },
+    {
+      "timestamp": 1698192100,
+      "media_count": 1,
+      "id": "archiveDay:18394002265057505",
+      "reel_type": "archive_day_reel",
+      "latest_reel_media": 1698192585
+    }
+  ],
+  "num_results": 2,
+  "more_available": false,
+  "max_id": null,
+  "memories": {
+    "items": []
+  },
+  "status": "ok"
+}

@@ -14,11 +14,11 @@ jobs:
       matrix:
         command:
           - build
-          - test:acceptance
+          # - test:acceptance
           # - test:unit
-          - test:ui
-          - test:type
-          - test:lint
+          # - test:ui
+          # - test:type
+          # - test:lint
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2

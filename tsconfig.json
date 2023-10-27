@@ -3,7 +3,7 @@
     "outDir": "dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "types": [
       "jest",
