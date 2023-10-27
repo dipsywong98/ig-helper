@@ -4,7 +4,7 @@ const config = {
     url: process.config.MONGO_URL,
 
     // TODO Change this to your database name:
-    databaseName: "esbuild-starter",
+    databaseName: "ig-helper",
 
     options: {
       useNewUrlParser: true, // removes a deprecation warning when connecting

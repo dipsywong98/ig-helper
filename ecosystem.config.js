@@ -18,7 +18,7 @@ if (fs.existsSync(pathToEnv)) {
 
 module.exports = {
   apps: [{
-    name: "esbuild-starter",
+    name: "ig-helper",
     script: "./index.js",
     watch: ['./index.js', '.env'],
     ignore_watch: ['logs'],

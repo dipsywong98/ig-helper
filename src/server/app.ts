@@ -9,6 +9,7 @@ import logger from './logger';
 import { getIgClient } from './getIgClient';
 import { getArchivedStories } from './getArchivedStories';
 import { getQA } from './getQA';
+import { sampleQAStories } from '../common/sampleQAStories';
 
 const app = express();
 
@@ -49,7 +50,9 @@ app.post('/api/stories', (req, res) => {
     });
 });
 
-// app.post('/api/stories')
+app.post('/api/stories-sample', (req, res) => {
+  res.json(sampleQAStories);
+});
 
 app.use(errorHandler);
 

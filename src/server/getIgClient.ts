@@ -31,7 +31,7 @@ export const getIgClient = async (username: string, password: string, otp?: stri
   }
   const ig = new IgApiClient();
   logger.info('loggin in ', username);
-  ig.state.generateDevice(username);
+  ig.state.generateDevice(sha(username));
   await ig.account.login(username, password);
   logger.info('successfully login');
   cache.set(key, ig);

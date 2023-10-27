@@ -1,5 +1,5 @@
 {
-  "name": "esbuild-starter",
+  "name": "ig-helper",
   "version": "1.0.12",
   "description": "typescript express starter using esbuild",
   "proxy": "http://localhost:3001",
@@ -67,6 +67,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.15",
     "axios": "^1.5.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
