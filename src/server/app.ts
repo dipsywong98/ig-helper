@@ -2,7 +2,7 @@ import express from 'express';
 import 'express-async-errors';
 import morgan from 'morgan';
 import path from 'path';
-import { IgLoginTwoFactorRequiredError, IgResponseError } from 'instagram-private-api';
+import { IgResponseError } from 'instagram-private-api';
 import config from '../common/config';
 import { sleep } from '../common/utils';
 import { errorHandler, NotFoundError } from './errors';
@@ -48,11 +48,11 @@ app.post('/api/stories', (req, res) => {
     .catch((e) => {
       if (e instanceof IgResponseError) {
         logger.error(`error in /api/stories ${e.text}`);
-        res.status(400).json({ message: `Error when connecting to ig: ${e.text}` });
+        res.status(400).json({ message: e.text });
       } else {
         logger.error(`error in /api/stories ${e}`);
         logger.error(e);
-        res.status(500).json({ message: e.message });
+        res.status(500).json({ message: 'Internal server error of IG Helper' });
       }
     });
 });

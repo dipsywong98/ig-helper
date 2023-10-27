@@ -2,16 +2,25 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import './App.css';
 import { QAStory } from '../common/QAStory';
-import { sampleQAStories } from '../common/sampleQAStories';
 import { Stories } from './Stories';
 
 function App(): JSX.Element {
   const [stories, setStories] = useState<QAStory[] | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [message, setMessage] = useState('');
   const handleLogin = () => {
-    axios.post('/api/stories', { username, password }).then(({ data }) => setStories(data));
-    setStories(sampleQAStories);
+    setMessage('loading...');
+    axios.post('/api/stories', { username, password, otp })
+      .then(({ data }) => {
+        setStories(data);
+        setMessage('');
+      })
+      .catch((e) => {
+        console.log(e);
+        setMessage(e.response.data.message);
+      });
   };
   return (
     <div>
@@ -26,12 +35,22 @@ function App(): JSX.Element {
         {' '}
         <input type="password" value={password} onChange={({ target }) => { setPassword(target.value); }} />
       </p>
-      {/* <p>
+      <p>
         otp:
         {' '}
-        <input />
-      </p> */}
+        <input value={otp} onChange={({ target }) => { setOtp(target.value); }} />
+      </p>
+      <p>
+        otp is 6 digit number from your authenticator app (e.g. google Authenticator).
+        Leave blank if you didnt enable 2FA. Currently not supporting SMS
+      </p>
       <p><button type="button" onClick={handleLogin}>login</button></p>
+      {message !== '' && (
+      <p>
+        Message:
+        {message}
+      </p>
+      )}
       {
         stories === null ? 'please log in' : <Stories stories={stories} />
       }

@@ -24,6 +24,10 @@ const archiveApiUrl = '/api/v1/archive/reel/day_shells/?include_suggested_highli
 // eslint-disable-next-line max-len
 export const getArchivedStories = async (ig: IgApiClient): Promise<ReelsMediaFeedResponseItem[]> => (
   ig.request.send({ url: archiveApiUrl })
-    .then((response) => response.body)
-    .then((body: ArchiveResponseBody) => body.items.map((archive) => archive.id))
+    .then((response) => {
+      console.log(response.body);
+      return response.body;
+    })
+    .then((body: ArchiveResponseBody) => body.items.map((archive) => archive.id).slice(0, 1))
+    // .then((body: ArchiveResponseBody) => body.items.map((archive) => archive.id))
     .then((userIds) => ig.feed.reelsMedia({ userIds }).items()));
