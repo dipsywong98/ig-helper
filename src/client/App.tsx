@@ -6,7 +6,7 @@ import '@fontsource/roboto/700.css';
 import axios from 'axios';
 import React, { useState } from 'react';
 import './App.css';
-import Button from '@mui/material/Button';
+import { Typography } from '@mui/material';
 import { QAStory } from '../common/QAStory';
 import { Stories } from './Stories';
 import { Responder } from './Responder';
@@ -20,7 +20,7 @@ function App(): JSX.Element {
   const handleLogin = () => {
     setMessage('loading...');
     axios.post(
-      '/api/stories',
+      '/api/stories-sample',
       { username, password, otp },
     )
       .then(({ data }) => {
@@ -34,7 +34,7 @@ function App(): JSX.Element {
   };
   return (
     <div>
-      <h1>IG Helper - Stories QA Extractor</h1>
+      <Typography variant="h3">IG Helper - Stories QA Extractor</Typography>
       <div className="responders">
         <Responder
           question="大家為什麼看/學習人格學+你的MBTI / 九型"

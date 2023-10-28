@@ -1,28 +1,11 @@
-.responder {
-  border-radius: 15px;
-  width: 450px;
-  overflow: hidden;
-  font-family: "Roboto", "Noto Sans", "Helvetica", "Arial", sans-serif;
-  text-align: center;
-}
-
-.responder-question {
-  padding: 25px 39px;
-  background-color: #262626;
-  font-size: 24px;
-  color: #ffffff;
-}
-
-.responder-response {
-  background-color: #ffffff;
-  color: #292929;
-  padding: 40px 35px;
-  font-size: 32px;
-}
-
 .responders {
   padding: 10px;
   background-color: #161616;
   display: flex;
   flex-wrap: wrap;
+}
+
+.respond-img {
+  scale: 1;
+  transform-origin: top left;
 }
