@@ -3,9 +3,5 @@
   background-color: #161616;
   display: flex;
   flex-wrap: wrap;
-}
-
-.respond-img {
-  scale: 1;
   transform-origin: top left;
 }
