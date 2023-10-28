@@ -1,8 +1,15 @@
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
 import axios from 'axios';
 import React, { useState } from 'react';
 import './App.css';
+import Button from '@mui/material/Button';
 import { QAStory } from '../common/QAStory';
 import { Stories } from './Stories';
+import { Responder } from './Responder';
 
 function App(): JSX.Element {
   const [stories, setStories] = useState<QAStory[] | null>(null);
@@ -12,7 +19,10 @@ function App(): JSX.Element {
   const [message, setMessage] = useState('');
   const handleLogin = () => {
     setMessage('loading...');
-    axios.post('/api/stories', { username, password, otp })
+    axios.post(
+      '/api/stories',
+      { username, password, otp },
+    )
       .then(({ data }) => {
         setStories(data);
         setMessage('');
@@ -25,6 +35,20 @@ function App(): JSX.Element {
   return (
     <div>
       <h1>IG Helper - Stories QA Extractor</h1>
+      <div className="responders">
+        <Responder
+          question="大家為什麼看/學習人格學+你的MBTI / 九型"
+          response="my answer"
+        />
+        <Responder
+          question="大家為什麼看/學習人格學+你的MBTI / 九型"
+          response="my answer"
+        />
+        <Responder
+          question="大家為什麼看/學習人格學+你的MBTI / 九型"
+          response="my answer"
+        />
+      </div>
       <p>
         username:
         {' '}

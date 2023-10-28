@@ -35,7 +35,7 @@ export const filterQA = (archivedStories: ReelsMediaFeedResponseItem[]): QAStory
   }));
 };
 
-export const getArchivedQAStories = async (ig: IgApiClient, limit = 2): Promise<QAStory[]> => {
+export const getArchivedQAStories = async (ig: IgApiClient, limit = 1): Promise<QAStory[]> => {
   const archiveItemChunks = chunk(await getArchivedStories(ig), 20);
   const qaStories: QAStory[] = [];
 
