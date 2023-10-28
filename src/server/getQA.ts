@@ -1,6 +1,8 @@
-import { ReelsMediaFeedResponseItem } from 'instagram-private-api';
+import { IgApiClient, ReelsMediaFeedResponseItem } from 'instagram-private-api';
+import { chunk } from 'lodash';
 import { QAStory, QAStoryResponder } from '../common/QAStory';
 import logger from './logger';
+import { getArchivedStories } from './getArchivedStories';
 
 const extractResponse = (story: any): QAStoryResponder[] => {
   if (!story.story_question_responder_infos?.length) {
@@ -22,7 +24,7 @@ const extractResponse = (story: any): QAStoryResponder[] => {
   }));
 };
 
-export const getQA = (archivedStories: ReelsMediaFeedResponseItem[]): QAStory[] => {
+export const filterQA = (archivedStories: ReelsMediaFeedResponseItem[]): QAStory[] => {
   const qaStories = archivedStories.filter((story) => !!story.story_questions?.length);
   return qaStories.map((story) => ({
     imagePreview: story.image_versions2.candidates[1].url,
@@ -31,4 +33,21 @@ export const getQA = (archivedStories: ReelsMediaFeedResponseItem[]): QAStory[] 
     responders: extractResponse(story),
     timestamp: Number(story.device_timestamp),
   }));
+};
+
+export const getArchivedQAStories = async (ig: IgApiClient, limit = 2): Promise<QAStory[]> => {
+  const archiveItemChunks = chunk(await getArchivedStories(ig), 20);
+  const qaStories: QAStory[] = [];
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const archiveItems of archiveItemChunks) {
+    // eslint-disable-next-line no-await-in-loop
+    const items = await ig.feed.reelsMedia({ userIds: archiveItems.map((it) => it.id) }).items();
+    qaStories.push(...filterQA(items));
+    if (qaStories.length >= limit) {
+      break;
+    }
+  }
+
+  return qaStories;
 };

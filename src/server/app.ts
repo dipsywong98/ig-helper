@@ -8,8 +8,7 @@ import { sleep } from '../common/utils';
 import { errorHandler, NotFoundError } from './errors';
 import logger from './logger';
 import { getIgClient } from './getIgClient';
-import { getArchivedStories } from './getArchivedStories';
-import { getQA } from './getQA';
+import { getArchivedQAStories } from './getQA';
 import { sampleQAStories } from '../common/sampleQAStories';
 
 const app = express();
@@ -39,8 +38,7 @@ app.get('/404', async () => {
 app.post('/api/stories', (req, res) => {
   const { username, password, otp } = req.body;
   getIgClient(username, password, otp)
-    .then(getArchivedStories)
-    .then(getQA)
+    .then(getArchivedQAStories)
     .then((qa) => {
       res.json(qa);
       return qa;
