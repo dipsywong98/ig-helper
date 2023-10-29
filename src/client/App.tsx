@@ -9,18 +9,18 @@ import './App.css';
 import { Typography } from '@mui/material';
 import { QAStory } from '../common/QAStory';
 import { Stories } from './Stories';
-import { Responder } from './Responder';
+import { sampleQAStories } from '../common/sampleQAStories';
 
 function App(): JSX.Element {
-  const [stories, setStories] = useState<QAStory[] | null>(null);
+  const [stories, setStories] = useState<QAStory[] | null>(sampleQAStories);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState('Please log in');
   const handleLogin = () => {
-    setMessage('loading...');
+    setMessage('loading... it might take a minute...');
     axios.post(
-      '/api/stories-sample',
+      '/api/stories',
       { username, password, otp },
     )
       .then(({ data }) => {
@@ -35,20 +35,6 @@ function App(): JSX.Element {
   return (
     <div>
       <Typography variant="h3">IG Helper - Stories QA Extractor</Typography>
-      <div className="responders">
-        <Responder
-          question="大家為什麼看/學習人格學+你的MBTI / 九型"
-          response="my answer"
-        />
-        <Responder
-          question="大家為什麼看/學習人格學+你的MBTI / 九型"
-          response="my answer"
-        />
-        <Responder
-          question="大家為什麼看/學習人格學+你的MBTI / 九型"
-          response="my answer"
-        />
-      </div>
       <p>
         username:
         {' '}
@@ -66,7 +52,10 @@ function App(): JSX.Element {
       </p>
       <p>
         otp is 6 digit number from your authenticator app (e.g. google Authenticator).
-        Leave blank if you didnt enable 2FA. Currently not supporting SMS
+        Leave blank if you didnt enable 2FA. Currently not supporting SMS.
+      </p>
+      <p>
+        Known issue: drag and drop to figma is not working for firefox
       </p>
       <p><button type="button" onClick={handleLogin}>login</button></p>
       {message !== '' && (
