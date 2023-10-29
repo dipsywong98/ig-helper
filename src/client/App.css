@@ -1,8 +1,15 @@
-@font-face {
+/* @font-face {
   font-family: 'Noto Sans';
   src: url(/NotoSansTC-Regular.otf);
-}
+} */
 
-body {
+* {
   /* background-color: #FAFAFA; */
+
+
+  /*
+  Dont import any other font faces otherwise png generation will fucked up (extremely slow)
+  */
+  font-family: "Helvetica", "Arial", sans-serif;
+
 }

@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useEffect, useRef, useState,
+} from 'react';
 import './Responder.css';
 import { Box } from '@mui/material';
 import domtoimage from 'dom-to-image-more';
+// import Worker from './dom2img.worker?worker';
 
 // declare module 'dom-to-image-more' {
 //   import domToImage = require('dom-to-image-more');
@@ -12,24 +15,23 @@ import domtoimage from 'dom-to-image-more';
 interface Props {
   question: string
   response: string
-  domScale?: number
   imageScale?: number
 }
 
 export function Responder({
-  response, question, domScale: scale, imageScale,
+  response, question, imageScale,
 }: Props) {
-  const domRef = useRef(null);
-  const displayRef = useRef(null);
-  const rootRef = useRef(null);
+  const domRef = useRef<HTMLDivElement>(null);
+  const displayRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [dataUrl, setDataUrl] = useState('');
-  // useEffect(() => {
-  //   if (domRef.current !== null) {
-  //     domtoimage.toPng(domRef.current).then((url) => {
-  //       setDataUrl(url);
-  //     });
-  //   }
-  // }, [scale]);
+  useEffect(() => {
+    if (domRef.current !== null) {
+      domtoimage.toPng(domRef.current).then((url) => {
+        setDataUrl(url);
+      });
+    }
+  }, []);
   const domBubble = (ref?: typeof domRef) => (
     <Box
       ref={ref}
@@ -39,7 +41,7 @@ export function Responder({
         boxSizing: 'border-box',
         width: '840px',
         overflow: 'hidden',
-        fontFamily: '"Roboto", "Noto Sans", "Helvetica", "Arial", sans-serif',
+        fontFamily: '"Helvetica", sans-serif',
         textAlign: 'center',
       }}
     >
@@ -77,7 +79,6 @@ export function Responder({
     <Box
       sx={{
         margin: 1,
-        // width: '225px',
         position: 'relative',
       }}
       ref={rootRef}
@@ -100,6 +101,5 @@ export function Responder({
 }
 
 Responder.defaultProps = {
-  domScale: 1,
   imageScale: 0.3,
 };

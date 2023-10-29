@@ -32,7 +32,7 @@ export function Stories({ stories }: Props) {
           </button>
           <ul style={{ display: view !== View.LIST ? 'none' : undefined }}>
             {story.responders.map((responder) => (
-              <li key={responder.timestamp}>
+              <li key={responder.response}>
                 {responder.username}
                 :
                 {' '}
@@ -40,16 +40,17 @@ export function Stories({ stories }: Props) {
               </li>
             ))}
           </ul>
-          <Box sx={{
-            height: view !== View.GRID ? 0 : undefined,
-            overflow: 'hidden',
-            display: 'flex',
-            flexWrap: 'wrap',
-          }}
+          <Box
+            sx={{
+              height: view !== View.GRID ? 0 : undefined,
+              overflow: 'hidden',
+              display: 'flex',
+              flexWrap: 'wrap',
+            }}
           >
             {story.responders.map((responder) => (
               <Responder
-                key={responder.timestamp}
+                key={responder.response}
                 question={story.question}
                 response={responder.response}
               />
