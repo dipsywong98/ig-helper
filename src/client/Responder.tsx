@@ -23,13 +23,13 @@ export function Responder({
   const displayRef = useRef(null);
   const rootRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
-  useEffect(() => {
-    if (domRef.current !== null) {
-      domtoimage.toPng(domRef.current).then((url) => {
-        setDataUrl(url);
-      });
-    }
-  }, [scale]);
+  // useEffect(() => {
+  //   if (domRef.current !== null) {
+  //     domtoimage.toPng(domRef.current).then((url) => {
+  //       setDataUrl(url);
+  //     });
+  //   }
+  // }, [scale]);
   const domBubble = (ref?: typeof domRef) => (
     <Box
       ref={ref}
@@ -37,7 +37,7 @@ export function Responder({
         borderRadius: '30px',
         border: 'black 1px solid',
         boxSizing: 'border-box',
-        width: '900px',
+        width: '840px',
         overflow: 'hidden',
         fontFamily: '"Roboto", "Noto Sans", "Helvetica", "Arial", sans-serif',
         textAlign: 'center',
@@ -45,10 +45,11 @@ export function Responder({
     >
       <Box
         sx={{
-          padding: '50px 78px',
+          padding: '50px 60px',
           backgroundColor: '#262626',
           fontSize: '42px',
           color: '#ffffff',
+          overflowWrap: 'break-word',
         }}
       >
         {question}
@@ -56,22 +57,27 @@ export function Responder({
       <Box sx={{
         backgroundColor: '#ffffff',
         color: '#292929',
-        padding: response.length >= 20 ? '80px 35px' : '70px 70px',
-        fontSize: response.length >= 20 ? '52px' : '64px',
+        padding: response.length >= 20 ? '60px 52px' : '50px 52px',
+        fontSize: response.length >= 20 ? '48px' : '56px',
+        overflowWrap: 'break-word',
+        fontWeight: 'bold',
       }}
       >
-        {response}
+        {response.split('\n').map((w) => (<div key={w}>{w}</div>))}
       </Box>
     </Box>
   );
-  if (rootRef.current !== null && displayRef.current !== null) {
-    rootRef.current.style.height = `${displayRef.current.clientHeight * imageScale}px`;
-  }
+  useEffect(() => {
+    if (rootRef.current !== null && displayRef.current !== null) {
+      rootRef.current.style.height = `${displayRef.current.clientHeight * imageScale}px`;
+      rootRef.current.style.width = `${840 * imageScale}px`;
+    }
+  }, [imageScale]);
   return (
     <Box
       sx={{
         margin: 1,
-        width: '225px',
+        // width: '225px',
         position: 'relative',
       }}
       ref={rootRef}
