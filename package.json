@@ -1,6 +1,6 @@
 {
   "name": "ig-helper",
-  "version": "1.0.12",
+  "version": "0.0.0",
   "description": "typescript express starter using esbuild",
   "proxy": "http://localhost:7101",
   "main": "index.js",
