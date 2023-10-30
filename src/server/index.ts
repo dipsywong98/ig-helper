@@ -1,5 +1,6 @@
 import './dotenv';
 // import mongoose, { connect } from 'mongoose';
+import { exec } from 'child_process';
 import config from '../common/config';
 import app from './app';
 import logger from './logger';
@@ -16,7 +17,14 @@ const init = async () => {
   });
 
   app.listen(config.PORT, () => {
-    logger.info(`Application is listening on port ${config.PORT}`);
+    const url = `http://localhost:${config.PORT}`;
+    logger.info(`Application is listening on ${url}`);
+    // open('https://localhost:7101');
+    // if (!config.SERVER_MODE) {
+    // eslint-disable-next-line no-nested-ternary
+    const start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
+    exec(`${start} ${url}`);
+    // }
   });
 };
 

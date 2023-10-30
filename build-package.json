@@ -1,0 +1,38 @@
+{
+  "name": "ig-helper",
+  "version": "0.1.1",
+  "description": "IG Helper that extracts Stories question sticker responses",
+  "proxy": "http://localhost:7101",
+  "main": "index.js",
+  "bin": "index.js",
+  "devDependencies": {},
+  "pkg": {
+    "scripts": "index.js",
+    "assets": "client/**/*",
+    "targets": [
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-win-x64"
+    ],
+    "outputPath": "build/"
+  },
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "resolutions": {
+    "nth-check": "^2.0.1"
+  }
+}

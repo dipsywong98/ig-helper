@@ -25,7 +25,7 @@ const logger = winston.createLogger({
     format: 'YYYY-MM-DDTHH:mm:ssZ',
   }), logFormat),
   transports: [
-    fileRotateTransport,
+    // fileRotateTransport,
     new winston.transports.Console({
       format: combine(colorize(), logFormat),
     }),
