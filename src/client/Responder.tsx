@@ -3,7 +3,7 @@ import React, {
 } from 'react';
 import './Responder.css';
 import { Box } from '@mui/material';
-import domtoimage from 'dom-to-image-more';
+import domtoimage from 'dom-to-image';
 // import Worker from './dom2img.worker?worker';
 
 // declare module 'dom-to-image-more' {
@@ -27,7 +27,7 @@ export function Responder({
   const [dataUrl, setDataUrl] = useState('');
   useEffect(() => {
     if (domRef.current !== null) {
-      domtoimage.toPng(domRef.current).then((url) => {
+      domtoimage.toSvg(domRef.current, { width: 840 }).then((url) => {
         setDataUrl(url);
       });
     }
@@ -59,10 +59,10 @@ export function Responder({
       <Box sx={{
         backgroundColor: '#ffffff',
         color: '#292929',
-        padding: response.length >= 20 ? '60px 52px' : '50px 52px',
+        padding: response.length >= 20 ? '60px 52px' : '50px 48px',
         fontSize: response.length >= 20 ? '48px' : '56px',
         overflowWrap: 'break-word',
-        fontWeight: 'bold',
+        // fontWeight: 600,
       }}
       >
         {response.split('\n').map((w) => (<div key={w}>{w}</div>))}
