@@ -27,16 +27,16 @@ export const getIgClient = async (username: string, password: string, otp?: stri
   const key = sha(`${username}:${password}`);
   const client = cache.get(key);
   if (client) {
+    logger.info(`using cached ig client instance of ${username}`);
     return client;
   }
   const ig = new IgApiClient();
-  logger.info('loggin in ', username);
+  logger.info(`loggin in ${username}`);
   ig.state.generateDevice(username);
   try {
     await ig.account.login(username, password);
   } catch (e) {
     if (e instanceof IgLoginTwoFactorRequiredError) {
-      logger.info('dealing with 2fa');
       const {
         // eslint-disable-next-line @typescript-eslint/no-shadow
         username,
@@ -45,6 +45,7 @@ export const getIgClient = async (username: string, password: string, otp?: stri
         // eslint-disable-next-line @typescript-eslint/naming-convention
         two_factor_identifier,
       } = e.response.body.two_factor_info;
+      logger.info(`dealing with 2fa for ${username}`);
       const verificationMethod = totp_two_factor_on ? '0' : '1'; // default to 1 for SMS
       await ig.account.twoFactorLogin({
         username,
