@@ -68,22 +68,23 @@ app.post('/api/stories/upload', (req, res) => {
     return;
   }
   const { username, password, otp } = req.body;
-  res.json({ message: 'uploaded as story' });
-  // getIgClient(username, password, otp)
-  //   .then((ig) => ig.publish.story({ file: image.data }))
-  //   .then(() => {
-  //     res.status(200).json({ message: 'Uploaded story' });
-  //   })
-  //   .catch((e) => {
-  //     console.log('error in /api/stories/upload', e);
-  //     if (e instanceof IgResponseError) {
-  //       logger.error(`error in /api/stories/upload ${e.text}`);
-  //       res.status(400).json({ message: e.text ?? 'IG cannot handle your request' });
-  //     } else {
-  //       logger.error(`error in /api/stories/upload ${e}`);
-  //       res.status(500).json({ message: 'Internal server error of IG Helper' });
-  //     }
-  //   });
+  console.log(image.data);
+  getIgClient(username, password, otp)
+    .then((ig) => ig.publish.story({ file: image.data }))
+    .then(() => {
+      res.status(200).json({ message: 'Uploaded story' });
+    })
+    .catch((e) => {
+      console.log('error in /api/stories/upload', e);
+      if (e instanceof IgResponseError) {
+        console.log(e.response.body);
+        logger.error(`error in /api/stories/upload ${e.text}`);
+        res.status(400).json({ message: e.text ?? 'IG cannot handle your request' });
+      } else {
+        logger.error(`error in /api/stories/upload ${e}`);
+        res.status(500).json({ message: 'Internal server error of IG Helper' });
+      }
+    });
 });
 
 app.post('/api/stories-sample', (req, res) => {

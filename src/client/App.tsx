@@ -1,12 +1,27 @@
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
 import './App.css';
-import { Typography } from '@mui/material';
+import {
+  Box, Button, Modal, Typography,
+} from '@mui/material';
 import { useDropzone } from 'react-dropzone';
-import { throttle } from 'lodash';
+import LoadingButton from '@mui/lab/LoadingButton';
+import { dataURLtoFile, downloadFile, EImageType } from 'image-conversion';
 import { QAStory } from '../common/QAStory';
 import { Stories } from './Stories';
 import { sampleQAStories } from '../common/sampleQAStories';
+import { fileToDataUrl, convertToJPG } from './fileToDataUrl';
+
+const style = {
+  position: 'absolute' as const,
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
 
 function App(): JSX.Element {
   const [stories, setStories] = useState<QAStory[] | null>(sampleQAStories);
@@ -15,17 +30,41 @@ function App(): JSX.Element {
   const [otp, setOtp] = useState('');
   const [message, setMessage] = useState('Please log in');
   const [uploading, setUploading] = useState(false);
-  const upload = useCallback((file: File) => {
+  const [selectedFile, setSelectedFile] = useState<null | File>(null);
+  const [selectedFileUrl, setSelectedFileUrl] = useState('');
+  useEffect(() => {
+    if (selectedFile !== null) {
+      fileToDataUrl(selectedFile).then((url) => {
+        setSelectedFileUrl(url);
+      });
+    } else {
+      setSelectedFileUrl('');
+    }
+  }, [selectedFile]);
+  const handleFileSelect = useCallback((file: File) => {
+    const fileType = file.type;
+    const validImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
+    if (!validImageTypes.includes(fileType)) {
+      alert('selected file type is not image');
+    } else {
+      setSelectedFile(file);
+    }
+  }, []);
+  const upload = useCallback(() => {
     setUploading(true);
     const formData = new FormData();
-    formData.append('image', file);
-    formData.append('username', username);
-    formData.append('password', password);
-    axios.post('/api/stories/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    dataURLtoFile(selectedFileUrl)
+      .then(async (file) => {
+        console.log(file);
+        formData.append('image', file);
+        formData.append('username', username);
+        formData.append('password', password);
+        return axios.post('/api/stories/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      })
       .then(({ data }) => {
         alert(data.message);
       })
@@ -35,42 +74,26 @@ function App(): JSX.Element {
       })
       .finally(() => {
         setUploading(false);
+        setSelectedFile(null);
       });
-  }, [username, password]);
+  }, [username, password, selectedFileUrl]);
   const onDrop = useCallback((acceptedFiles) => {
     // Do something with the files
-    console.log(acceptedFiles);
     if (acceptedFiles.length > 0) {
-      upload(acceptedFiles[0]);
+      handleFileSelect(acceptedFiles[0]);
     }
-  }, [upload]);
+  }, [handleFileSelect]);
   const handlePasteStory: React.ClipboardEventHandler<HTMLInputElement> = useCallback((evt) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const dT = evt.clipboardData ?? window.clipboardData;
-    console.log(dT);
     if (dT.files?.length > 0) {
-      console.log(dT.files[0]);
-      upload(dT.files[0]);
+      handleFileSelect(dT.files[0]);
     }
-  }, [upload]);
-  // useEffect(() => {
-  //   const fn = throttle((evt: ClipboardEvent) => {
-  //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //     // @ts-ignore
-  //     const dT = evt.clipboardData ?? window.clipboardData;
-  //     console.log(dT);
-  //     if (dT.files?.length > 0) {
-  //       console.log(dT.files[0]);
-  //       upload(dT.files[0]);
-  //     }
-  //   });
-  //   document.addEventListener('paste', fn);
-  //   return () => {
-  //     document.removeEventListener('paste', fn);
-  //   };
-  // }, [upload]);
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, maxFiles: 1 });
+  }, [handleFileSelect]);
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop, maxFiles: 1, accept: { 'image/*': [] }, onDropRejected: (e) => { console.log(e); alert(e[0]?.errors?.[0]?.message ?? 'Rejected'); },
+  });
   const handleLogin = () => {
     setMessage('loading... it might take a minute...');
     axios.post(
@@ -140,6 +163,33 @@ function App(): JSX.Element {
       {
         stories === null ? 'please log in' : <Stories stories={stories} />
       }
+      <Modal
+        open={selectedFile !== null || uploading}
+        onClose={() => { setSelectedFile(null); }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Upload Story - Preview
+          </Typography>
+          <Box sx={{
+            backgroundImage: `url('${selectedFileUrl}')`,
+            width: '360px',
+            height: '640px',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: '50% 50%',
+            backgroundSize: 'contain',
+            border: '1px solid black',
+            mb: 1,
+          }}
+          />
+          <Box>
+            <Button disabled={uploading} sx={{ mr: 1 }} variant="text" onClick={() => { setSelectedFile(null); }}>Cancel</Button>
+            <LoadingButton variant="contained" color="primary" onClick={upload} loading={uploading}>Upload</LoadingButton>
+          </Box>
+        </Box>
+      </Modal>
     </div>
   );
 }
