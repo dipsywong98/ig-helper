@@ -1,5 +1,6 @@
 import winston, { format } from 'winston';
 import 'winston-daily-rotate-file';
+import config from '../common/config';
 
 const { combine, timestamp, colorize } = format;
 
@@ -25,7 +26,7 @@ const logger = winston.createLogger({
     format: 'YYYY-MM-DDTHH:mm:ssZ',
   }), logFormat),
   transports: [
-    // fileRotateTransport,
+    ...(config.SERVER_MODE ? [fileRotateTransport] : []),
     new winston.transports.Console({
       format: combine(colorize(), logFormat),
     }),

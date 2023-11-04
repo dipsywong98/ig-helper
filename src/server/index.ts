@@ -20,8 +20,8 @@ const init = async () => {
     const url = `http://localhost:${config.PORT}`;
     logger.info(`Application is listening on ${url}`);
     // open('https://localhost:7101');
-    console.log(process.platform, process.argv);
-    if (process.platform !== 'linux' && process.argv.filter((s) => s.includes('index.js')).length > 0) {
+    console.log(process.platform, process.argv, `SERVER_MODE=${config.SERVER_MODE}`);
+    if (!config.SERVER_MODE) {
       // eslint-disable-next-line no-nested-ternary
       const start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
       exec(`${start} ${url}`);
