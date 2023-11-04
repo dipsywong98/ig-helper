@@ -6,11 +6,11 @@ import {
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { dataURLtoFile, downloadFile, EImageType } from 'image-conversion';
+import { dataURLtoFile } from 'image-conversion';
 import { QAStory } from '../common/QAStory';
 import { Stories } from './Stories';
 import { sampleQAStories } from '../common/sampleQAStories';
-import { fileToDataUrl, convertToJPG } from './fileToDataUrl';
+import { fileToJpgDataUrl } from './fileToDataUrl';
 
 const style = {
   position: 'absolute' as const,
@@ -34,7 +34,7 @@ function App(): JSX.Element {
   const [selectedFileUrl, setSelectedFileUrl] = useState('');
   useEffect(() => {
     if (selectedFile !== null) {
-      convertToJPG(selectedFile).then((url) => {
+      fileToJpgDataUrl(selectedFile).then((url) => {
         setSelectedFileUrl(url);
       });
     } else {
@@ -173,10 +173,10 @@ function App(): JSX.Element {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Upload Story - Preview
           </Typography>
-          <Typography color="red">
-            Caution: Preview does not mean the final result,
+          <Typography>
+            Caution: recommended dimension is 1080x1920,
             <br />
-            the image might be different after uploading to ig
+            Ratio other than 9:16 may lead to unexpected cropping
           </Typography>
           <Box sx={{
             backgroundImage: `url('${selectedFileUrl}')`,
