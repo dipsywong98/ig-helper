@@ -1,8 +1,9 @@
 import axios from 'axios';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { Typography } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
+import { throttle } from 'lodash';
 import { QAStory } from '../common/QAStory';
 import { Stories } from './Stories';
 import { sampleQAStories } from '../common/sampleQAStories';
@@ -43,6 +44,32 @@ function App(): JSX.Element {
       upload(acceptedFiles[0]);
     }
   }, [upload]);
+  const handlePasteStory: React.ClipboardEventHandler<HTMLInputElement> = useCallback((evt) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const dT = evt.clipboardData ?? window.clipboardData;
+    console.log(dT);
+    if (dT.files?.length > 0) {
+      console.log(dT.files[0]);
+      upload(dT.files[0]);
+    }
+  }, [upload]);
+  // useEffect(() => {
+  //   const fn = throttle((evt: ClipboardEvent) => {
+  //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //     // @ts-ignore
+  //     const dT = evt.clipboardData ?? window.clipboardData;
+  //     console.log(dT);
+  //     if (dT.files?.length > 0) {
+  //       console.log(dT.files[0]);
+  //       upload(dT.files[0]);
+  //     }
+  //   });
+  //   document.addEventListener('paste', fn);
+  //   return () => {
+  //     document.removeEventListener('paste', fn);
+  //   };
+  // }, [upload]);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, maxFiles: 1 });
   const handleLogin = () => {
     setMessage('loading... it might take a minute...');
@@ -103,6 +130,11 @@ function App(): JSX.Element {
                 ? <p>Drop the files here to upload as story...</p>
                 : <p>Drag 'n' drop some files here, or click to select files, to upload story</p>
           }
+          <p>
+            Or paste here:
+            {' '}
+            <input onPaste={handlePasteStory} onClick={(e) => { e.stopPropagation(); }} />
+          </p>
         </div>
       </div>
       {
