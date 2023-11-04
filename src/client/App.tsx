@@ -34,7 +34,7 @@ function App(): JSX.Element {
   const [selectedFileUrl, setSelectedFileUrl] = useState('');
   useEffect(() => {
     if (selectedFile !== null) {
-      fileToDataUrl(selectedFile).then((url) => {
+      convertToJPG(selectedFile).then((url) => {
         setSelectedFileUrl(url);
       });
     } else {
@@ -172,6 +172,11 @@ function App(): JSX.Element {
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Upload Story - Preview
+          </Typography>
+          <Typography color="red">
+            Caution: Preview does not mean the final result,
+            <br />
+            the image might be different after uploading to ig
           </Typography>
           <Box sx={{
             backgroundImage: `url('${selectedFileUrl}')`,

@@ -43,22 +43,14 @@ export const convertToJPG = async function (file: File): Promise<string> {
   const img = document.createElement('img');
   img.src = await fileToDataUrl(file);
   return new Promise((resolve) => {
-    img.onload = async function (event) {
+    img.onload = async () => {
       // This line is dynamically creating a canvas element
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
-      // Resize your image here
-      console.log(img.width, img.height);
       ctx.drawImage(img, 0, 0, img.width, img.height);
-      // // To blob
-      const jpgBlob = await new Promise((resolve2) => { canvas.toBlob(resolve2, 'image/jpg', 1); }); // refer to canvas.toblob API
-      // To file
-      // @ts-ignore
-      const jpgFile = await new File([jpgBlob], `${file.name}.jpg`, { type: 'image/jpg' }); // refer to File API
-      fileToDataUrl(jpgFile).then(resolve);
-      // resolve(await);
+      resolve(canvas.toDataURL('image/jpeg'));
     };
   });
 };
