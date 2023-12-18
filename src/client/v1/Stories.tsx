@@ -1,7 +1,7 @@
 import React, { useReducer, useState } from 'react';
 import { Box } from '@mui/material';
-import { QAStory } from '../common/QAStory';
-import { Responder } from './Responder';
+import { QAStory } from '../../common/QAStory';
+import { Responder } from '../Responder';
 import { Story } from './Story';
 
 interface Props {

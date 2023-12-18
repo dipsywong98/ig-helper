@@ -1,9 +1,9 @@
 import React, { useReducer, useState } from 'react';
 import { Box } from '@mui/material';
-import { QAStory } from '../common/QAStory';
-import { Responder } from './Responder';
-import { download } from './download';
-import { sleep } from '../common/utils';
+import { QAStory } from '../../common/QAStory';
+import { Responder } from '../Responder';
+import { download } from '../download';
+import { sleep } from '../../common/utils';
 
 interface Props {
   story: QAStory

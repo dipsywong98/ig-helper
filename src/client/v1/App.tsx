@@ -7,10 +7,10 @@ import {
 import { useDropzone } from 'react-dropzone';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { dataURLtoFile } from 'image-conversion';
-import { QAStory } from '../common/QAStory';
+import { QAStory } from '../../common/QAStory';
 import { Stories } from './Stories';
-import { sampleQAStories } from '../common/sampleQAStories';
-import { fileToJpgDataUrl } from './fileToDataUrl';
+import { sampleQAStories } from '../../common/sampleQAStories';
+import { fileToJpgDataUrl } from '../fileToDataUrl';
 
 const style = {
   position: 'absolute' as const,
