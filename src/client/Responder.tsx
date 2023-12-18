@@ -4,22 +4,17 @@ import React, {
 import './Responder.css';
 import { Box } from '@mui/material';
 import domtoimage from 'dom-to-image';
-// import Worker from './dom2img.worker?worker';
-
-// declare module 'dom-to-image-more' {
-//   import domToImage = require('dom-to-image-more');
-
-//   export = domToImage;
-// }
 
 interface Props {
   question: string
   response: string
   imageScale?: number
+  selected: Record<string, string>
+  toggleSelected: (response: string, dataUrl: string) => void
 }
 
 export function Responder({
-  response, question, imageScale,
+  response, question, imageScale, selected, toggleSelected,
 }: Props) {
   const domRef = useRef<HTMLDivElement>(null);
   const displayRef = useRef<HTMLDivElement>(null);
@@ -27,7 +22,7 @@ export function Responder({
   const [dataUrl, setDataUrl] = useState('');
   useEffect(() => {
     if (domRef.current !== null) {
-      domtoimage.toSvg(domRef.current, { width: 840 }).then((url) => {
+      domtoimage.toPng(domRef.current, { width: 840 }).then((url) => {
         setDataUrl(url);
       });
     }
@@ -37,7 +32,7 @@ export function Responder({
       ref={ref}
       sx={{
         borderRadius: '30px',
-        border: 'black 1px solid',
+        border: 'black 2px solid',
         boxSizing: 'border-box',
         width: '840px',
         overflow: 'hidden',
@@ -82,6 +77,7 @@ export function Responder({
         position: 'relative',
       }}
       ref={rootRef}
+      onClick={() => dataUrl && toggleSelected(response, dataUrl)}
     >
       <Box
         sx={{
@@ -96,6 +92,11 @@ export function Responder({
             <img alt="response" src={dataUrl} />
           ) : domBubble()}
       </Box>
+      {dataUrl && (
+        <Box sx={{ top: 0, left: 0, position: 'absolute' }}>
+          <input type="checkbox" checked={response in selected} readOnly />
+        </Box>
+      )}
     </Box>
   );
 }
