@@ -2,8 +2,9 @@ import express from 'express';
 import 'express-async-errors';
 import morgan from 'morgan';
 import path from 'path';
-import { IgResponseError } from 'instagram-private-api';
+import { IgResponseError, IgApiClient, IgLoginTwoFactorRequiredError } from 'instagram-private-api';
 import fileUpload from 'express-fileupload';
+import session from 'express-session';
 import config from '../common/config';
 import { sleep } from '../common/utils';
 import { errorHandler, NotFoundError } from './errors';
@@ -11,9 +12,32 @@ import logger from './logger';
 import { getIgClient } from './getIgClient';
 import { getArchivedQAStories } from './getQA';
 import { sampleQAStories } from '../common/sampleQAStories';
+import { LoginResponseDTO, MfaDTO, MfaResponseDTO } from '../common/DTO';
 
 const app = express();
 
+declare module 'express-session' {
+  interface SessionData {
+    username: string
+    igSession: string
+    mfa: {
+      totp_two_factor_on: boolean
+      two_factor_identifier: string
+    }
+    logedIn: boolean
+  }
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Locals {
+      ig: IgApiClient
+    }
+  }
+}
+
+app.use(session({ secret: 'keyboard cat', cookie: { secure: app.get('env') === 'production' } }));
 app.use(fileUpload());
 app.use(express.json());
 app.use('/', express.static(path.join(__dirname, 'client')));
@@ -22,6 +46,17 @@ app.use(morgan('tiny', {
     write: (message) => logger.http(message),
   },
 }));
+app.use(async (req, res, next) => {
+  const ig = new IgApiClient();
+  if (req.session.username) {
+    ig.state.generateDevice(req.session.username);
+  }
+  if (req.session.igSession) {
+    await ig.state.deserialize(req.session.igSession);
+  }
+  res.locals.ig = ig;
+  next();
+});
 app.get('/api/ping', (req, res) => {
   res.send(config.HELLO_WORLD);
 });
@@ -89,6 +124,110 @@ app.post('/api/stories/upload', (req, res) => {
 
 app.post('/api/stories-sample', (req, res) => {
   res.json(sampleQAStories);
+});
+
+const handleLogin = async (username: string, password: string): Promise<LoginResponseDTO> => {
+  const ig = new IgApiClient();
+  logger.info(`loggin in ${username} to generate session id`);
+  ig.state.generateDevice(username);
+  try {
+    await ig.account.login(username, password);
+    return {
+      session: await ig.state.serialize(),
+      logedIn: true,
+    };
+  } catch (e) {
+    if (e instanceof IgLoginTwoFactorRequiredError) {
+      const {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        totp_two_factor_on,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        two_factor_identifier,
+      } = e.response.body.two_factor_info;
+      return {
+        session: await ig.state.serialize(),
+        mfa: {
+          totp_two_factor_on,
+          two_factor_identifier,
+        },
+        logedIn: false,
+      };
+    }
+    console.log(e);
+    throw e;
+  }
+  logger.info('successfully login');
+};
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  const result = await handleLogin(username, password);
+  req.session.regenerate(() => {
+    req.session.username = username;
+    req.session.igSession = result.session;
+    req.session.mfa = result.mfa;
+    req.session.logedIn = true;
+    res.json(result);
+  });
+});
+
+app.post('/api/loginWithSession', async (req, res) => {
+  const { igSession, username } = req.body;
+  const ig = new IgApiClient();
+  ig.state.generateDevice(username);
+  await ig.state.deserialize(igSession);
+  const user = await ig.account.currentUser();
+  req.session.regenerate(() => {
+    req.session.username = username;
+    req.session.igSession = igSession;
+    req.session.logedIn = true;
+    res.json(user);
+  });
+});
+
+const handleMfa = async (ig: IgApiClient, username: string, mfa: MfaDTO, code: string): Promise<void> => {
+  logger.info(`dealing with 2fa for ${username}`);
+  const verificationMethod = mfa.totp_two_factor_on ? '0' : '1'; // default to 1 for SMS
+  await ig.account.twoFactorLogin({
+    username,
+    verificationCode: code,
+    twoFactorIdentifier: mfa.two_factor_identifier,
+    verificationMethod, // '1' = SMS (default), '0' = TOTP (google auth for example)
+    trustThisDevice: '1', // Can be omitted as '1' is used by default
+  });
+};
+
+app.post('/api/provideMFA', async (req, res) => {
+  const { ig } = res.locals;
+  const { mfa, username } = req.session;
+  const { code } = req.body;
+  if (!mfa || !username) {
+    res.status(401).json({ error: 'NO_PENDING_MFA' });
+    return;
+  }
+  handleMfa(ig, username, mfa, code).then(() => {
+    req.session.logedIn = true;
+    req.session.mfa = undefined;
+    res.json({ success: true });
+  });
+});
+
+app.use((req, res, next) => {
+  if (!req.session.logedIn) {
+    res.status(401).json({ error: 'NOT_LOGGED_IN' });
+    return;
+  }
+  next();
+});
+
+app.get('/api/me', async (req, res) => {
+  const { ig } = res.locals;
+  ig.account.currentUser().then((result) => res.json(result));
+  // const { mfa, username } = req.session;
+  // const { code } = req.body;
+  // handleMfa(ig, username, mfa, code).then(() => {
+  //   res.json({ success: true });
+  // });
 });
 
 app.use(errorHandler);

@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import express, { ErrorRequestHandler } from 'express';
+import { IgClientError } from 'instagram-private-api';
 import logger from './logger';
 
 export class ClientError extends Error {
@@ -40,6 +41,10 @@ export const errorHandler: ErrorRequestHandler = (
   (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (err instanceof ClientError) {
       res.status(err.status).send({ message: err.message });
+    } else if (err instanceof IgClientError) {
+      logger.error(`Error when handling ${req.path} ${err.stack ?? ''}`);
+      const message = err.message.split('; ').slice(1).join('; ');
+      res.status(400).send({ message });
     } else {
       logger.error(`Error when handling ${req.path} ${err.stack ?? ''}`);
       res.sendStatus(500);
