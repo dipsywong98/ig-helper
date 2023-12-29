@@ -5,13 +5,9 @@ export interface LoginResponseDTO {
 }
 
 export interface MfaDTO {
+  username: string
   totp_two_factor_on: boolean
   two_factor_identifier: string
-}
-
-export interface MfaRequestDTO {
-  session: string
-
 }
 
 export interface MfaResponseDTO {
