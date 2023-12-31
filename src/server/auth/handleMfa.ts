@@ -1,8 +1,13 @@
 import type { IgApiClient } from 'instagram-private-api';
-import { MfaDTO } from '../../common/DTO';
+import { MfaDTO, MfaResponseDTO } from '../../common/DTO';
 import logger from '../logger';
 
-async function handleMfa(ig: IgApiClient, mfa: MfaDTO, code: string): Promise<void> {
+async function handleMfa(
+  ig: IgApiClient,
+  mfa: MfaDTO,
+  code: string,
+  trustThisDevice: boolean,
+): Promise<MfaResponseDTO> {
   logger.info(`dealing with 2fa for ${mfa.username}`);
   const verificationMethod = mfa.totp_two_factor_on ? '0' : '1'; // default to 1 for SMS
   await ig.account.twoFactorLogin({
@@ -10,8 +15,11 @@ async function handleMfa(ig: IgApiClient, mfa: MfaDTO, code: string): Promise<vo
     verificationCode: code,
     twoFactorIdentifier: mfa.two_factor_identifier,
     verificationMethod, // '1' = SMS (default), '0' = TOTP (google auth for example)
-    trustThisDevice: '1', // Can be omitted as '1' is used by default
+    trustThisDevice: trustThisDevice ? '1' : '0', // Can be omitted as '1' is used by default
   });
+  return {
+    session: await ig.state.serialize(),
+  };
 }
 
 export default handleMfa;

@@ -1,9 +1,11 @@
 import React, {
-  AppBar, Grid, Toolbar, Typography,
+  AppBar, Box, Button, Grid, Toolbar, Typography,
 } from '@mui/material';
 import Login from './Login';
+import { useIgSession } from './IgSessionContext';
 
 export default function App() {
+  const { isLoggedIn, logout } = useIgSession();
   return (
     <Grid
       sx={{
@@ -21,7 +23,14 @@ export default function App() {
       </Grid>
       <Grid item>
         {/* <p>{Array(1000).fill('abcd').join(' ')}</p> */}
-        <Login />
+        {
+          !isLoggedIn ? <Login /> : (
+            <Box>
+              logged in
+              <Button onClick={logout}>log out</Button>
+            </Box>
+          )
+        }
       </Grid>
     </Grid>
   );

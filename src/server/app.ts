@@ -134,7 +134,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/api/me', async (req, res) => {
+app.get('/api/my/self', async (req, res) => {
   const { ig } = res.locals;
   ig.account.currentUser().then((result) => res.json(result));
 });

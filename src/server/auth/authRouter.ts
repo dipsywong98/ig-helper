@@ -22,27 +22,35 @@ authRouter.post('/api/loginWithSession', async (req, res) => {
   const ig = new IgApiClient();
   ig.state.generateDevice(username);
   await ig.state.deserialize(igSession);
-  const user = await ig.account.currentUser();
-  req.session.regenerate(() => {
+  await ig.account.currentUser();
+  req.session.regenerate(async () => {
     req.session.username = username;
     req.session.igSession = igSession;
     req.session.logedIn = true;
-    res.json(user);
+    res.json({
+      session: await ig.state.serialize(),
+    });
   });
 });
 
 authRouter.post('/api/provideMFA', async (req, res) => {
   const { ig } = res.locals;
   const { mfa, username } = req.session;
-  const { code } = req.body;
+  const { code, trustThisDevice } = req.body;
   if (!mfa || !username) {
     res.status(401).json({ error: 'NO_PENDING_MFA' });
     return;
   }
-  handleMfa(ig, mfa, code).then(() => {
+  handleMfa(ig, mfa, code, trustThisDevice).then((result) => {
     req.session.logedIn = true;
     req.session.mfa = undefined;
-    res.json({ success: true });
+    res.json(result);
+  });
+});
+
+authRouter.post('/api/logout', (req, res) => {
+  req.session.regenerate(() => {
+    res.json({ message: 'success' });
   });
 });
 

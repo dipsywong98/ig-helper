@@ -1,25 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
-  Card, Typography, TextField, Button, Box,
+  Card, Typography, TextField, Checkbox, FormControlLabel, Grid, Container,
 } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { useQueries } from '@tanstack/react-query';
 import { useIgSession } from './IgSessionContext';
 
 export default function Login() {
-  const { login, provideMFA, getMe } = useIgSession();
+  const { login, provideMFA } = useIgSession();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [needMfa, setNeedMfa] = useState(false);
   const [code, setCode] = useState('');
-  const [logedIn, setLogedIn] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('error');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [rmbMe, setRmbMe] = useState(true);
+  const [trustThisDevice, setTrustThisDevice] = useState(true);
 
-  const handleLogin = () => {
-    login(username, password, true).then((result) => {
+  const handleLogin = async () => {
+    await login(username, password, rmbMe).then((result) => {
       if (result.mfa) {
         setNeedMfa(true);
-      } else {
-        setLogedIn(true);
       }
     }).catch((error) => {
       console.log(error);
@@ -27,39 +28,118 @@ export default function Login() {
     });
   };
 
-  const handleMfa = () => {
-    provideMFA(code).then(() => {
-      console.log('success');
-      setLogedIn(true);
-    }).catch((error) => {
-      console.log(error);
+  const handleMfa = async () => {
+    await provideMFA(code, rmbMe, trustThisDevice).catch((error) => {
       setErrorMessage(error.response.data.message);
     });
   };
 
-  useEffect(() => {
-    if (logedIn) {
-      getMe().then(console.log);
-    }
-  }, [logedIn]);
+  const [loginQuery, mfaQuery] = useQueries({
+    queries: [{
+      queryKey: ['login'],
+      queryFn: handleLogin,
+      refetchOnWindowFocus: false,
+      enabled: false,
+    },
+    {
+      queryKey: ['mfa'],
+      queryFn: handleMfa,
+      refetchOnWindowFocus: false,
+      enabled: false,
+    }],
+  });
 
   return (
-    <Card>
-      <Typography>
-        Login
-      </Typography>
-      <TextField label="username" value={username} onChange={({ target }) => setUsername(target.value)} />
-      <TextField label="password" value={password} onChange={({ target }) => setPassword(target.value)} />
-      <Button onClick={handleLogin}>Login</Button>
-      {
-        needMfa && (
-          <Box>
-            <TextField label="2fa" value={code} onChange={({ target }) => setCode(target.value)} />
-            <Button onClick={handleMfa}>Mfa Login</Button>
-          </Box>
-        )
-      }
-      <Typography color="error">{errorMessage}</Typography>
-    </Card>
+    <Grid
+      container
+      sx={{
+        width: '100%', height: '100%', verticalAlign: 'center',
+      }}
+    >
+      <Card sx={{ m: 'auto', display: 'inline-block' }}>
+        <Container sx={{ marginY: 1 }}>
+          {
+            !needMfa ? (
+              <Grid container direction="column" spacing={1}>
+                <Grid item>
+                  <Typography variant="h3" gutterBottom>
+                    Login
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <TextField
+                    label="username"
+                    id="username"
+                    value={username}
+                    onChange={({ target }) => setUsername(target.value)}
+                  />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    label="password"
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={({ target }) => setPassword(target.value)}
+                  />
+                </Grid>
+                <Grid item>
+                  <FormControlLabel
+                    label="Keep logged in"
+                    control={(
+                      <Checkbox
+                        checked={rmbMe}
+                        onChange={({ target }) => setRmbMe(target.checked)}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item>
+                  <LoadingButton
+                    loading={loginQuery.isFetching}
+                    onClick={() => loginQuery.refetch()}
+                    variant="contained"
+                  >
+                    Login
+                  </LoadingButton>
+                </Grid>
+              </Grid>
+            ) : (
+              <Grid container direction="column" spacing={1}>
+                <Grid item>
+                  <Typography variant="h3" gutterBottom>
+                    MFA
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <TextField label="code" value={code} onChange={({ target }) => setCode(target.value)} />
+                </Grid>
+                <Grid item>
+                  <FormControlLabel
+                    label="Trust this device"
+                    control={(
+                      <Checkbox
+                        checked={trustThisDevice}
+                        onChange={({ target }) => setTrustThisDevice(target.checked)}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item>
+                  <LoadingButton
+                    loading={mfaQuery.isFetching}
+                    onClick={() => mfaQuery.refetch()}
+                    variant="contained"
+                  >
+                    Verify
+                  </LoadingButton>
+                </Grid>
+              </Grid>
+            )
+          }
+          <Typography color="error">{errorMessage}</Typography>
+        </Container>
+      </Card>
+    </Grid>
   );
 }

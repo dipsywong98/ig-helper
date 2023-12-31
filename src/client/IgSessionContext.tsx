@@ -1,14 +1,18 @@
 import axios from 'axios';
 import React, {
-  createContext, useContext, useEffect, useMemo,
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from 'react';
+import type { AccountRepositoryCurrentUserResponseUser } from 'instagram-private-api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LoginResponseDTO } from '../common/DTO';
 
 interface IgSessionContext {
-  login: (username: string, password: string, rmbMe?: boolean) => Promise<LoginResponseDTO>
-  provideMFA: (code: string) => Promise<{ session: string }>
+  isLoggedIn: boolean
+  me?: AccountRepositoryCurrentUserResponseUser
+  login: (username: string, password: string, rmbMe: boolean) => Promise<LoginResponseDTO>
+  provideMFA(code: string, rmbMe: boolean, trustThisDevice: boolean): Promise<{ session: string }>
   getMe: () => Promise<unknown>
-
+  logout: () => Promise<void>
 }
 
 const igSessionContext = createContext<IgSessionContext>(null);
@@ -20,34 +24,81 @@ interface Props {
 }
 
 export function IgSessionContextProvider({ children }: Props) {
+  const queryClient = useQueryClient();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(true);
+
+  const loginSuccessHandler = useCallback((username: string, igSession: string, rmbMe: boolean) => {
+    if (rmbMe) {
+      sessionStorage.setItem('igSession', JSON.stringify(igSession));
+      sessionStorage.setItem('username', username);
+    }
+    setIsLoggedIn(true);
+    queryClient.invalidateQueries({ queryKey: ['myself'] });
+  }, [queryClient]);
+
   useEffect(() => {
     const igSession = sessionStorage.getItem('igSession');
     const username = sessionStorage.getItem('username');
     if (igSession && username) {
-      axios.post('/api/loginWithSession', { igSession: JSON.parse(igSession), username }).then(console.log);
+      setLoggingIn(true);
+      axios.post('/api/loginWithSession', { igSession: JSON.parse(igSession), username })
+        .then(({ data }) => loginSuccessHandler(username, data.session, true))
+        .catch(() => {
+          sessionStorage.removeItem('igSession');
+          sessionStorage.removeItem('username');
+        })
+        .finally(() => setLoggingIn(false));
+    } else {
+      setLoggingIn(false);
     }
-  }, []);
+  }, [loginSuccessHandler]);
+
+  const myself = useQuery({
+    queryKey: ['myself'],
+    queryFn: async () => {
+      if (isLoggedIn) {
+        return (await axios.get('./api/my/self')).data as AccountRepositoryCurrentUserResponseUser;
+      }
+      return null;
+    },
+  });
 
   const contextValue: IgSessionContext = useMemo(() => ({
-    async login(username, password, rmbMe = false) {
+    isLoggedIn,
+    me: myself.data,
+    async login(username, password, rmbMe) {
       const { data } = await axios.post('./api/login', { username, password });
-      if (rmbMe) {
-        sessionStorage.setItem('igSession', JSON.stringify(data.session));
-        sessionStorage.setItem('username', username);
+      if (!data.mfa) {
+        loginSuccessHandler(username, data.session, rmbMe);
       }
       return data;
     },
-    async provideMFA(code) {
-      return (await axios.post('./api/provideMFA', { code })).data;
+    async provideMFA(code, rmbMe, trustThisDevice) {
+      const { data } = await axios.post('./api/provideMFA', { code, trustThisDevice });
+      loginSuccessHandler(data.username, data.session, rmbMe);
+      return data;
     },
     async getMe() {
-      return (await axios.get('./api/me')).data;
+      return (await axios.get('./api/my/self')).data;
     },
-  }), []);
+    async logout() {
+      await axios.post('./api/logout');
+      sessionStorage.removeItem('igSession');
+      sessionStorage.removeItem('username');
+      setIsLoggedIn(false);
+    },
+  }), [isLoggedIn, loginSuccessHandler, myself.data]);
+
+  if (loggingIn) {
+    return 'loggin in';
+  }
 
   return (
     <igSessionContext.Provider value={contextValue}>
-      {children}
+      {
+        children
+      }
     </igSessionContext.Provider>
   );
 }
