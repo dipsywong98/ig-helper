@@ -1,8 +1,7 @@
 import React, {
-  AppBar, Box, Button, Grid, Toolbar, Typography,
+  AppBar, Button, Grid, Toolbar, Typography,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import Login from './Login';
 import { useIgSession } from './IgSessionContext';
 
 export default function Layout() {
@@ -22,7 +21,7 @@ export default function Layout() {
             <Typography>
               IG Helper -
               {' '}
-              {meQuery?.data?.full_name}
+              {meQuery?.data?.username}
             </Typography>
           </Toolbar>
         </AppBar>

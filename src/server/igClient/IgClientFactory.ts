@@ -6,7 +6,6 @@ import getMockedClient, { MOCKED_CLIENT_SESSION } from './MockedIgClient';
 
 async function createIgClient(session?: IgSession, username?: string): Promise<IgClient> {
   if (!config.CONNECT_TO_IG) {
-    console.log('use mock ig client');
     return getMockedClient();
   }
   if (session.session === MOCKED_CLIENT_SESSION.session) {
