@@ -3,15 +3,13 @@ import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from 'react';
 import type { AccountRepositoryCurrentUserResponseUser } from 'instagram-private-api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LoginResponseDTO } from '../common/DTO';
+import { IgSession, LoginResponseDTO } from '../common/DTO';
 
 interface IgSessionContext {
   isLoggedIn: boolean
-  me?: AccountRepositoryCurrentUserResponseUser
   login: (username: string, password: string, rmbMe: boolean) => Promise<LoginResponseDTO>
-  provideMFA(code: string, rmbMe: boolean, trustThisDevice: boolean): Promise<{ session: string }>
-  getMe: () => Promise<unknown>
+  provideMFA(code: string, rmbMe: boolean, trustThisDevice: boolean): Promise<{ session: IgSession }>
+  getMe: () => Promise<AccountRepositoryCurrentUserResponseUser>
   logout: () => Promise<void>
 }
 
@@ -24,18 +22,19 @@ interface Props {
 }
 
 export function IgSessionContextProvider({ children }: Props) {
-  const queryClient = useQueryClient();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggingIn, setLoggingIn] = useState(true);
 
-  const loginSuccessHandler = useCallback((username: string, igSession: string, rmbMe: boolean) => {
-    if (rmbMe) {
-      sessionStorage.setItem('igSession', JSON.stringify(igSession));
-      sessionStorage.setItem('username', username);
-    }
-    setIsLoggedIn(true);
-    queryClient.invalidateQueries({ queryKey: ['myself'] });
-  }, [queryClient]);
+  const loginSuccessHandler = useCallback(
+    async (username: string, igSession: IgSession, rmbMe: boolean) => {
+      if (rmbMe) {
+        sessionStorage.setItem('igSession', JSON.stringify(igSession));
+        sessionStorage.setItem('username', username);
+      }
+      setIsLoggedIn(true);
+    },
+    [],
+  );
 
   useEffect(() => {
     const igSession = sessionStorage.getItem('igSession');
@@ -54,19 +53,8 @@ export function IgSessionContextProvider({ children }: Props) {
     }
   }, [loginSuccessHandler]);
 
-  const myself = useQuery({
-    queryKey: ['myself'],
-    queryFn: async () => {
-      if (isLoggedIn) {
-        return (await axios.get('./api/my/self')).data as AccountRepositoryCurrentUserResponseUser;
-      }
-      return null;
-    },
-  });
-
   const contextValue: IgSessionContext = useMemo(() => ({
     isLoggedIn,
-    me: myself.data,
     async login(username, password, rmbMe) {
       const { data } = await axios.post('./api/login', { username, password });
       if (!data.mfa) {
@@ -88,7 +76,7 @@ export function IgSessionContextProvider({ children }: Props) {
       sessionStorage.removeItem('username');
       setIsLoggedIn(false);
     },
-  }), [isLoggedIn, loginSuccessHandler, myself.data]);
+  }), [isLoggedIn, loginSuccessHandler]);
 
   if (loggingIn) {
     return 'loggin in';

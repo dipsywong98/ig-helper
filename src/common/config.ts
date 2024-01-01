@@ -25,6 +25,9 @@ const config = {
   PORT: env('PORT', 7101),
   MONGO_URL: env('MONGO_URL', `mongodb://test:testpw@localhost:27017/${name}?authSource=admin`),
   SERVER_MODE: env('SERVER_MODE', process.platform === 'linux' && process.argv.filter((s) => s.startsWith('/snapshot')).length === 0),
+  RATE_LIMIT_WINDOW_MS: env('RATE_LIMIT_WINDOW_MS', 1000),
+  RATE_LIMIT_PER_WINDOW: env('RATE_LIMIT_PER_WINDOW', 5),
+  CONNECT_TO_IG: env('CONNECT_TO_IG', process.env.NODE_ENV === 'production'),
 };
 
 export default config;

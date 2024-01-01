@@ -26,12 +26,14 @@ export default function Login() {
       console.log(error);
       setErrorMessage(error.response.data.message);
     });
+    return null;
   };
 
   const handleMfa = async () => {
     await provideMFA(code, rmbMe, trustThisDevice).catch((error) => {
       setErrorMessage(error.response.data.message);
     });
+    return null;
   };
 
   const [loginQuery, mfaQuery] = useQueries({

@@ -2,9 +2,10 @@ import express from 'express';
 import 'express-async-errors';
 import morgan from 'morgan';
 import path from 'path';
-import { IgResponseError, IgApiClient } from 'instagram-private-api';
+import { IgResponseError } from 'instagram-private-api';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
+import { rateLimit } from 'express-rate-limit';
 import config from '../common/config';
 import { sleep } from '../common/utils';
 import { errorHandler, NotFoundError } from './errors';
@@ -12,15 +13,17 @@ import logger from './logger';
 import { getIgClient } from './getIgClient';
 import { getArchivedQAStories } from './getQA';
 import { sampleQAStories } from '../common/sampleQAStories';
-import { MfaDTO } from '../common/DTO';
-import authRouter from './auth/authRouter';
+import { IgSession, MfaDTO } from '../common/DTO';
+import authRouter from './routes/authRouter';
+import { IgClient } from './igClient/IgClient';
+import createIgClient from './igClient/IgClientFactory';
 
 const app = express();
 
 declare module 'express-session' {
   interface SessionData {
     username: string
-    igSession: string
+    igSession: IgSession
     mfa: MfaDTO
     logedIn: boolean
   }
@@ -30,12 +33,19 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Locals {
-      ig: IgApiClient
+      ig: IgClient
     }
   }
 }
 
 app.use(session({ secret: 'keyboard cat', cookie: { secure: app.get('env') === 'production' } }));
+app.use(rateLimit({
+  windowMs: config.RATE_LIMIT_WINDOW_MS,
+  limit: config.RATE_LIMIT_PER_WINDOW,
+  standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+  // store: ... , // Use an external store for consistency across multiple server instances.
+}));
 app.use(fileUpload());
 app.use(express.json());
 app.use('/', express.static(path.join(__dirname, 'client')));
@@ -45,15 +55,10 @@ app.use(morgan('tiny', {
   },
 }));
 app.use(async (req, res, next) => {
-  const ig = new IgApiClient();
-  if (req.session.username) {
-    ig.state.generateDevice(req.session.username);
-  }
-  if (req.session.igSession) {
-    await ig.state.deserialize(req.session.igSession);
-  }
+  const ig = await createIgClient(req.session.igSession, req.session.username);
   res.locals.ig = ig;
   next();
+  req.session.igSession = await ig.serialize();
 });
 app.get('/api/ping', (req, res) => {
   res.send(config.HELLO_WORLD);
@@ -136,7 +141,7 @@ app.use((req, res, next) => {
 
 app.get('/api/my/self', async (req, res) => {
   const { ig } = res.locals;
-  ig.account.currentUser().then((result) => res.json(result));
+  await ig.me().then((result) => res.json(result));
 });
 
 app.use(errorHandler);

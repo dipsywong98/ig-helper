@@ -33,6 +33,7 @@
     "react-hooks"
   ],
   "rules": {
+    "max-len": "off",
     "import/prefer-default-export": "off",
     "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/no-explicit-any": "off",

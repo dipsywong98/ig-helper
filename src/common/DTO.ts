@@ -1,7 +1,6 @@
 export interface LoginResponseDTO {
-  session: string
+  session: IgSession
   mfa?: MfaDTO
-  logedIn: boolean
 }
 
 export interface MfaDTO {
@@ -11,5 +10,7 @@ export interface MfaDTO {
 }
 
 export interface MfaResponseDTO {
-  session: string
+  session: IgSession
 }
+
+export type IgSession = Record<string, unknown>;
