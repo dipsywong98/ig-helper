@@ -18,7 +18,6 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   bgcolor: 'background.paper',
-  border: '2px solid #000',
   boxShadow: 24,
   p: 4,
 };
@@ -173,15 +172,10 @@ function App(): JSX.Element {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Upload Story - Preview
           </Typography>
-          <Typography>
-            Caution: recommended dimension is 1080x1920,
-            <br />
-            Ratio other than 9:16 may lead to unexpected cropping
-          </Typography>
           <Box sx={{
             backgroundImage: `url('${selectedFileUrl}')`,
-            width: '360px',
-            height: '640px',
+            width: '270px',
+            height: '480px',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: '50% 50%',
             backgroundSize: 'contain',
@@ -193,6 +187,11 @@ function App(): JSX.Element {
             <Button disabled={uploading} sx={{ mr: 1 }} variant="text" onClick={() => { setSelectedFile(null); }}>Cancel</Button>
             <LoadingButton variant="contained" color="primary" onClick={upload} loading={uploading}>Upload</LoadingButton>
           </Box>
+          <Typography variant="caption">
+            Caution: recommended dimension is 1080x1920,
+            <br />
+            Ratio other than 9:16 may lead to unexpected cropping
+          </Typography>
         </Box>
       </Modal>
     </div>
